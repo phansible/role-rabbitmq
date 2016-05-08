@@ -1,0 +1,9 @@
+---
+rabbitmq:
+    user: "user"
+    password: "password"
+    plugins: []
+
+vagrant_local:
+  vm:
+    hostname: "localhost"
