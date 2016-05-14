@@ -1,4 +1,8 @@
 ---
+- name: Ensure packages database is up to date
+  become: yes
+  apt: update_cache=yes
+
 - name: add rabbitmq official apt repository
   apt_repository: repo='deb http://www.rabbitmq.com/debian/ testing main' state=present
 
