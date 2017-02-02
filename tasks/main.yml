@@ -9,7 +9,7 @@
 
 - name: install rabbitmq
   become: yes
-  apt: pkg=rabbitmq-server state=installed
+  apt: pkg=rabbitmq-server allow_unauthenticated=yes state=installed
 
 - name: enable rabbitmq plugins
   rabbitmq_plugin: names={{ item }} state=enabled
@@ -23,4 +23,4 @@
   rabbitmq_user: user={{ rabbitmq.user }} password={{ rabbitmq.password }} node=rabbit@{{ rabbitmq.hostname }} tags=administrator,{{ rabbitmq.user }} vhost=/ configure_priv=.* write_priv=.* read_priv=.* state=present
 
 - name: restart rabbitmq
-  service: name=rabbitmq-server state=reloaded
+  service: name=rabbitmq-server state=restarted
