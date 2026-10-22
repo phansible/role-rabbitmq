@@ -1,6 +1,6 @@
 # Phansible Role: RabbitMQ
 
-[![Build Status](https://travis-ci.org/phansible/role-rabbitmq.svg?branch=master)](https://travis-ci.org/phansible/role-rabbitmq)
+[![CI](https://github.com/phansible/role-rabbitmq/actions/workflows/ci.yml/badge.svg)](https://github.com/phansible/role-rabbitmq/actions/workflows/ci.yml)
 
 An Ansible Role that installs [RabbitMQ](https://www.rabbitmq.com/) on Ubuntu specifically created with [Phansible](http://phansible.com/) in mind.
 
