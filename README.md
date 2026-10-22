@@ -26,6 +26,8 @@ rabbitmq:
 - `password` (default `password`): password for that user, set only when the user is created.
 - `plugins` (default `[]`): plugins to enable, for example `rabbitmq_management`.
 
+`rabbitmq_series` (default `"4.4"`) is a separate top-level variable: the RabbitMQ release series to install. An apt preferences file pins `rabbitmq-server` to `<series>.*`, so patch releases within the series install and upgrade as usual, but a new series never arrives through a plain `apt upgrade`. RabbitMQ only supports upgrading one series at a time, after the previous series' feature flags are enabled, so a series upgrade should be a deliberate step: enable all feature flags (`rabbitmqctl enable_feature_flag all`), bump this variable by one series, then upgrade the package. Erlang 27 from the Team RabbitMQ repositories works with both supported series (4.3 and 4.4). The pin priority is below 1000, so lowering the variable never downgrades an installed broker.
+
 ## Dependencies
 
 None.
@@ -41,6 +43,7 @@ None.
       user: app
       password: secret
       plugins: [rabbitmq_management]
+    rabbitmq_series: "4.4"
   roles:
     - role-rabbitmq
 ```

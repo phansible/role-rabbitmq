@@ -48,6 +48,17 @@
       Pin: origin deb2.rabbitmq.com
       Pin-Priority: 999
 
+# series upgrades need the previous series' feature flags enabled first, so only patch releases come in implicitly
+- name: Pin RabbitMQ to the configured release series
+  become: yes
+  copy:
+    dest: /etc/apt/preferences.d/rabbitmq-server
+    mode: '0644'
+    content: |
+      Package: rabbitmq-server
+      Pin: version {{ rabbitmq_series }}.*
+      Pin-Priority: 990
+
 - name: Update packages database for the RabbitMQ repositories
   become: yes
   apt: update_cache=yes
