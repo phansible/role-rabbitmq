@@ -1,6 +1,6 @@
 ---
 rabbitmq:
-    hostname: "localhost"
+    hostname: "{{ ansible_facts.hostname }}"
     user: "user"
     password: "password"
     plugins: []

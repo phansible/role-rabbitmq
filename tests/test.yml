@@ -1,6 +1,12 @@
 ---
-- hosts: localhost
+- hosts: all
   become: yes
   remote_user: root
+  vars:
+    rabbitmq:
+      hostname: "{{ ansible_facts.hostname }}"
+      user: user
+      password: password
+      plugins: [rabbitmq_management]
   roles:
     - role-rabbitmq
