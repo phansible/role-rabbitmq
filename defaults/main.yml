@@ -4,3 +4,5 @@ rabbitmq:
     user: "user"
     password: "password"
     plugins: []
+
+rabbitmq_series: "4.4"

@@ -11,11 +11,12 @@ jobs:
       fail-fast: false
       matrix:
         image: ['ubuntu:22.04', 'ubuntu:24.04', 'ubuntu:26.04', 'debian:12', 'debian:13']
-    name: ${{ matrix.image }}
+        series: ['4.4', '4.3']
+    name: ${{ matrix.image }} rabbitmq ${{ matrix.series }}
     env:
       ANSIBLE_ROLES_PATH: ..
       ANSIBLE_FORCE_COLOR: '1'
-      PLAYBOOK: ansible-playbook -i test, -c community.docker.docker tests/test.yml
+      PLAYBOOK: ansible-playbook -i test, -c community.docker.docker tests/test.yml -e rabbitmq_series=${{ matrix.series }}
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +49,9 @@ jobs:
       - name: Check RabbitMQ is running
         run: |
           docker exec test systemctl is-active rabbitmq-server
-          docker exec test rabbitmqctl version
+          version=$(docker exec test rabbitmqctl version)
+          echo "$version"
+          [[ $version == ${{ matrix.series }}.* ]]
 
       - name: Check the user can authenticate and the plugin is enabled
         run: |
