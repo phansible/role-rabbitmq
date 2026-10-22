@@ -2,23 +2,48 @@
 
 [![CI](https://github.com/phansible/role-rabbitmq/actions/workflows/ci.yml/badge.svg)](https://github.com/phansible/role-rabbitmq/actions/workflows/ci.yml)
 
-An Ansible Role that installs [RabbitMQ](https://www.rabbitmq.com/) on Ubuntu specifically created with [Phansible](http://phansible.com/) in mind.
+An Ansible Role that installs [RabbitMQ](https://www.rabbitmq.com/) and a compatible Erlang from the Team RabbitMQ apt repositories, specifically created with [Phansible](http://phansible.com/) in mind.
 
 ## Requirements
 
-// TODO
+- Ubuntu 22.04, 24.04, 26.04 or Debian 12, 13 (x86_64; Team RabbitMQ publishes Erlang for amd64 only)
+- Ansible >= 2.15 with the `community.rabbitmq` collection (shipped with the `ansible` package)
 
 ## Role Variables
 
-// TODO
+All variables live under one `rabbitmq` dictionary, so override it as a whole:
+
+```yaml
+rabbitmq:
+    hostname: "{{ ansible_facts.hostname }}"
+    user: "user"
+    password: "password"
+    plugins: []
+```
+
+- `hostname` (default `{{ ansible_facts.hostname }}`): host part of the node name (`rabbit@<hostname>`) used when managing the user.
+- `user` (default `user`): user created with the `administrator` tag and full permissions on the `/` vhost.
+- `password` (default `password`): password for that user, set only when the user is created.
+- `plugins` (default `[]`): plugins to enable, for example `rabbitmq_management`.
 
 ## Dependencies
 
-// TODO
+None.
 
 ## Example Playbook
 
-// TODO
+```yaml
+- hosts: all
+  become: yes
+  vars:
+    rabbitmq:
+      hostname: "{{ ansible_facts.hostname }}"
+      user: app
+      password: secret
+      plugins: [rabbitmq_management]
+  roles:
+    - role-rabbitmq
+```
 
 ## License
 

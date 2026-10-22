@@ -1,26 +1,84 @@
 ---
-- name: Add rabbitmq official apt repository
+- name: Install repository prerequisites
   become: yes
-  apt_repository: repo='deb http://www.rabbitmq.com/debian/ testing main' state=present
+  apt:
+    pkg: ca-certificates
+    update_cache: yes
+    cache_valid_time: 3600
 
-- name: Ensure packages database is up to date
+- name: Ensure apt keyrings directory exists
   become: yes
-  apt: update_cache=yes cache_valid_time=3600
+  file: path=/etc/apt/keyrings state=directory mode=0755
 
-- name: install rabbitmq
+- name: Add Team RabbitMQ signing key
   become: yes
-  apt: pkg=rabbitmq-server allow_unauthenticated=yes state=installed
+  get_url:
+    url: https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+    dest: /etc/apt/keyrings/rabbitmq.asc
+    mode: '0644'
+    force: no
 
-- name: enable rabbitmq plugins
-  rabbitmq_plugin: names={{ item }} state=enabled
-  with_items: "{{ rabbitmq.plugins }}"
-  when: rabbitmq.plugins is defined
+- name: Add Team RabbitMQ repositories
+  become: yes
+  deb822_repository:
+    name: "{{ item }}"
+    uris:
+      - "https://deb1.rabbitmq.com/{{ item }}/{{ ansible_facts.distribution | lower }}/{{ ansible_facts.distribution_release }}"
+      - "https://deb2.rabbitmq.com/{{ item }}/{{ ansible_facts.distribution | lower }}/{{ ansible_facts.distribution_release }}"
+    suites: "{{ ansible_facts.distribution_release }}"
+    components: main
+    architectures: amd64
+    signed_by: /etc/apt/keyrings/rabbitmq.asc
+    install_python_debian: yes
+  loop: [rabbitmq-erlang, rabbitmq-server]
+  register: rabbitmq_repo
+
+# distro Erlang can be newer than what the installed RabbitMQ series supports
+- name: Prefer Erlang from the Team RabbitMQ repositories
+  become: yes
+  copy:
+    dest: /etc/apt/preferences.d/rabbitmq-erlang
+    mode: '0644'
+    content: |
+      Package: erlang*
+      Pin: origin deb1.rabbitmq.com
+      Pin-Priority: 999
+
+      Package: erlang*
+      Pin: origin deb2.rabbitmq.com
+      Pin-Priority: 999
+
+- name: Update packages database for the RabbitMQ repositories
+  become: yes
+  apt: update_cache=yes
+  when: rabbitmq_repo is changed
+
+- name: Install RabbitMQ
+  become: yes
+  apt:
+    pkg: rabbitmq-server
+    state: present
 
 - name: Ensure RabbitMQ service is started
-  service: name=rabbitmq-server state=started
+  become: yes
+  service: name=rabbitmq-server state=started enabled=yes
 
-- name: add user
-  rabbitmq_user: user={{ rabbitmq.user }} password={{ rabbitmq.password }} node=rabbit@{{ rabbitmq.hostname }} tags=administrator,{{ rabbitmq.user }} vhost=/ configure_priv=.* write_priv=.* read_priv=.* state=present
+- name: Enable RabbitMQ plugins
+  become: yes
+  rabbitmq_plugin:
+    names: "{{ rabbitmq.plugins | join(',') }}"
+    state: enabled
+  when: rabbitmq.plugins | length > 0
 
-- name: restart rabbitmq
-  service: name=rabbitmq-server state=restarted
+- name: Add RabbitMQ user
+  become: yes
+  rabbitmq_user:
+    user: "{{ rabbitmq.user }}"
+    password: "{{ rabbitmq.password }}"
+    node: "rabbit@{{ rabbitmq.hostname }}"
+    tags: "administrator,{{ rabbitmq.user }}"
+    vhost: /
+    configure_priv: .*
+    write_priv: .*
+    read_priv: .*
+    state: present
